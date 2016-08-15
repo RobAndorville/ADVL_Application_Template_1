@@ -506,6 +506,47 @@ Public Class Main
         MyBase.WndProc(m)
     End Sub
 
+    Private Sub SaveProjectSettings()
+        'Save the project settings in an XML file.
+        'Add any Project Settings to be saved into the settingsData XDocument.
+        Dim settingsData = <?xml version="1.0" encoding="utf-8"?>
+                           <!---->
+                           <!--Project settings for ADVL_Coordinates_1 application.-->
+                           <ProjectSettings>
+                           </ProjectSettings>
+
+        Dim SettingsFileName As String = "ProjectSettings_" & ApplicationInfo.Name & "_" & Me.Text & ".xml"
+        Project.SaveXmlSettings(SettingsFileName, settingsData)
+
+    End Sub
+
+    Private Sub RestoreProjectSettings()
+        'Restore the project settings from an XML document.
+
+        Dim SettingsFileName As String = "ProjectSettings_" & ApplicationInfo.Name & "_" & Me.Text & ".xml"
+
+        If Project.SettingsFileExists(SettingsFileName) Then
+            Dim Settings As System.Xml.Linq.XDocument
+            Project.ReadXmlSettings(SettingsFileName, Settings)
+
+            If IsNothing(Settings) Then 'There is no Settings XML data.
+                Exit Sub
+            End If
+
+            'Restore a Project Setting example:
+            If Settings.<ProjectSettings>.<Setting1>.Value = Nothing Then
+                'Project setting not saved.
+                'Setting1 = ""
+            Else
+                'Setting1 = Settings.<ProjectSettings>.<Setting1>.Value
+            End If
+
+            'Continue restoring saved settings.
+
+        End If
+
+    End Sub
+
 #End Region 'Process XML Files ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #Region " Form Display Methods - Code used to display this form." '----------------------------------------------------------------------------------------------------------------------------
@@ -559,8 +600,9 @@ Public Class Main
         Message.ApplicationName = ApplicationInfo.Name
         Message.SettingsLocn = Project.SettingsLocn
 
-        'Restore the form settings: ---------------------------------------------------------
-        RestoreFormSettings()
+
+        RestoreFormSettings() 'Restore the form settings
+        RestoreProjectSettings() 'Restore the Project settings
 
         'Show the project information: ------------------------------------------------------
         txtProjectName.Text = Project.Name
@@ -605,6 +647,7 @@ Public Class Main
         DisconnectFromAppNet() 'Disconnect from the Application Network.
 
         SaveFormSettings() 'Save the settings of this form.
+        SaveProjectSettings() 'Save project settings.
 
         ApplicationInfo.WriteFile() 'Update the Application Information file.
         ApplicationInfo.UnlockApplication()
@@ -669,6 +712,75 @@ Public Class Main
 
     Private Sub btnAndorville_Click(sender As Object, e As EventArgs) Handles btnAndorville.Click
         ApplicationInfo.ShowInfo()
+    End Sub
+
+    'Project Events:
+    Private Sub Project_Message(Msg As String) Handles Project.Message
+        'Display the Project message:
+        Message.Add(Msg & vbCrLf)
+    End Sub
+
+    Private Sub Project_ErrorMessage(Msg As String) Handles Project.ErrorMessage
+        'Display the Project error message:
+        Message.SetWarningStyle()
+        Message.Add(Msg & vbCrLf)
+        Message.SetNormalStyle()
+    End Sub
+
+    Private Sub Project_Closing() Handles Project.Closing
+        'The current project is closing.
+
+        SaveFormSettings() 'Save the form settings - they are saved in the Project before is closes.
+        SaveProjectSettings() 'Update this subroutine if project settings need to be saved.
+
+        'Save the current project usage information:
+        Project.Usage.SaveUsageInfo()
+    End Sub
+
+    Private Sub Project_Selected() Handles Project.Selected
+        'A new project has been selected.
+
+        RestoreFormSettings()
+        Project.ReadProjectInfoFile()
+        Project.Usage.StartTime = Now
+
+        ApplicationInfo.SettingsLocn = Project.SettingsLocn
+        Message.SettingsLocn = Project.SettingsLocn
+
+        'Restore the new project settings:
+        RestoreProjectSettings() 'Update this subroutine if project settings need to be restored.
+
+        'Show the project information:
+        txtProjectName.Text = Project.Name
+        txtProjectDescription.Text = Project.Description
+        Select Case Project.Type
+            Case ADVL_Utilities_Library_1.Project.Types.Directory
+                txtProjectType.Text = "Directory"
+            Case ADVL_Utilities_Library_1.Project.Types.Archive
+                txtProjectType.Text = "Archive"
+            Case ADVL_Utilities_Library_1.Project.Types.Hybrid
+                txtProjectType.Text = "Hybrid"
+            Case ADVL_Utilities_Library_1.Project.Types.None
+                txtProjectType.Text = "None"
+        End Select
+
+        txtCreationDate.Text = Format(Project.CreationDate, "d-MMM-yyyy H:mm:ss")
+        txtLastUsed.Text = Format(Project.Usage.LastUsed, "d-MMM-yyyy H:mm:ss")
+        Select Case Project.SettingsLocn.Type
+            Case ADVL_Utilities_Library_1.FileLocation.Types.Directory
+                txtSettingsLocationType.Text = "Directory"
+            Case ADVL_Utilities_Library_1.FileLocation.Types.Archive
+                txtSettingsLocationType.Text = "Archive"
+        End Select
+        txtSettingsLocationPath.Text = Project.SettingsLocn.Path
+        Select Case Project.DataLocn.Type
+            Case ADVL_Utilities_Library_1.FileLocation.Types.Directory
+                txtDataLocationType.Text = "Directory"
+            Case ADVL_Utilities_Library_1.FileLocation.Types.Archive
+                txtDataLocationType.Text = "Archive"
+        End Select
+        txtDataLocationPath.Text = Project.DataLocn.Path
+
     End Sub
 
 #Region " Online/Offline code"
