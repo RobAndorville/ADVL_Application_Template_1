@@ -12,7 +12,8 @@
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <PublishUrl>publish\</PublishUrl>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>D:\My Documents\publish\ADVL_Application_Template_1\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -22,10 +23,10 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationRevision>4</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -60,6 +61,18 @@
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>02DF78384330D74EF31971C49CB37DC1AD74ADE9</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>ADVL_Application_Template_1_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -87,10 +100,28 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="frmHtmlDisplay.Designer.vb">
+      <DependentUpon>frmHtmlDisplay.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmHtmlDisplay.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="frmTemplate.Designer.vb">
       <DependentUpon>frmTemplate.vb</DependentUpon>
     </Compile>
     <Compile Include="frmTemplate.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmWebPage.Designer.vb">
+      <DependentUpon>frmWebPage.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmWebPage.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmWebPageList.Designer.vb">
+      <DependentUpon>frmWebPageList.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmWebPageList.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Main.vb">
@@ -123,8 +154,17 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="frmHtmlDisplay.resx">
+      <DependentUpon>frmHtmlDisplay.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmTemplate.resx">
       <DependentUpon>frmTemplate.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmWebPage.resx">
+      <DependentUpon>frmWebPage.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmWebPageList.resx">
+      <DependentUpon>frmWebPageList.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.vb</DependentUpon>
@@ -137,6 +177,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ADVL_Application_Template_1_TemporaryKey.pfx" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -174,12 +215,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ADVL_Utilities_Library_1\ADVL_Utilities_Library_1\ADVL_Utilities_Library_1.vbproj">
-      <Project>{8f783c66-3ec9-42a3-b24e-c39c800e3c2e}</Project>
-      <Name>ADVL_Utilities_Library_1</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Andorville 16May16 TM Crop Grey.bmp" />
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +234,12 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.vb</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ADVL_Utilities_Library_1\ADVL_Utilities_Library_1\ADVL_Utilities_Library_1.vbproj">
+      <Project>{8f783c66-3ec9-42a3-b24e-c39c800e3c2e}</Project>
+      <Name>ADVL_Utilities_Library_1</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

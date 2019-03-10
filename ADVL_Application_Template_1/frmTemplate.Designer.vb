@@ -28,9 +28,9 @@ Partial Class frmTemplate
         'btnExit
         '
         Me.btnExit.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnExit.Location = New System.Drawing.Point(374, 12)
+        Me.btnExit.Location = New System.Drawing.Point(390, 12)
         Me.btnExit.Name = "btnExit"
-        Me.btnExit.Size = New System.Drawing.Size(64, 22)
+        Me.btnExit.Size = New System.Drawing.Size(48, 22)
         Me.btnExit.TabIndex = 7
         Me.btnExit.Text = "Exit"
         Me.btnExit.UseVisualStyleBackColor = True
