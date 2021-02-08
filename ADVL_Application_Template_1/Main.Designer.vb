@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class Main
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,26 +20,27 @@ Partial Class Main
     'NOTE: The following procedure is required by the Windows Form Designer
     'It can be modified using the Windows Form Designer.  
     'Do not modify it using the code editor.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Main))
         Me.btnExit = New System.Windows.Forms.Button()
         Me.btnOpenTemplateForm = New System.Windows.Forms.Button()
         Me.btnMessages = New System.Windows.Forms.Button()
         Me.btnOnline = New System.Windows.Forms.Button()
         Me.btnAppInfo = New System.Windows.Forms.Button()
         Me.btnProject = New System.Windows.Forms.Button()
-        Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
         Me.TabControl1 = New System.Windows.Forms.TabControl()
         Me.TabPage3 = New System.Windows.Forms.TabPage()
         Me.WebBrowser1 = New System.Windows.Forms.WebBrowser()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
         Me.TabPage2 = New System.Windows.Forms.TabPage()
+        Me.btnShowProjectInfo = New System.Windows.Forms.Button()
         Me.chkConnect = New System.Windows.Forms.CheckBox()
         Me.btnOpenProject = New System.Windows.Forms.Button()
         Me.Label13 = New System.Windows.Forms.Label()
         Me.txtProjectPath = New System.Windows.Forms.TextBox()
-        Me.txtAppNetName = New System.Windows.Forms.TextBox()
+        Me.txtProNetName = New System.Windows.Forms.TextBox()
         Me.Label9 = New System.Windows.Forms.Label()
         Me.btnOpenAppDir = New System.Windows.Forms.Button()
         Me.Label7 = New System.Windows.Forms.Label()
@@ -76,19 +77,22 @@ Partial Class Main
         Me.Label3 = New System.Windows.Forms.Label()
         Me.btnAndorville = New System.Windows.Forms.Button()
         Me.btnWebPages = New System.Windows.Forms.Button()
-        Me.Timer2 = New System.Windows.Forms.Timer(Me.components)
+        Me.ContextMenuStrip1 = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.ToolStripMenuItem1_EditWorkflowTabPage = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripMenuItem1_ShowStartPageInWorkflowTab = New System.Windows.Forms.ToolStripMenuItem()
+        Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
-        Me.Timer3 = New System.Windows.Forms.Timer(Me.components)
         Me.TabControl1.SuspendLayout()
         Me.TabPage3.SuspendLayout()
         Me.TabPage1.SuspendLayout()
         Me.TabPage2.SuspendLayout()
+        Me.ContextMenuStrip1.SuspendLayout()
         Me.SuspendLayout()
         '
         'btnExit
         '
         Me.btnExit.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnExit.Location = New System.Drawing.Point(683, 12)
+        Me.btnExit.Location = New System.Drawing.Point(670, 12)
         Me.btnExit.Name = "btnExit"
         Me.btnExit.Size = New System.Drawing.Size(48, 22)
         Me.btnExit.TabIndex = 7
@@ -107,7 +111,7 @@ Partial Class Main
         'btnMessages
         '
         Me.btnMessages.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnMessages.Location = New System.Drawing.Point(543, 12)
+        Me.btnMessages.Location = New System.Drawing.Point(530, 12)
         Me.btnMessages.Name = "btnMessages"
         Me.btnMessages.Size = New System.Drawing.Size(72, 22)
         Me.btnMessages.TabIndex = 33
@@ -119,17 +123,18 @@ Partial Class Main
         Me.btnOnline.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnOnline.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnOnline.ForeColor = System.Drawing.Color.Red
-        Me.btnOnline.Location = New System.Drawing.Point(621, 12)
+        Me.btnOnline.Location = New System.Drawing.Point(608, 12)
         Me.btnOnline.Name = "btnOnline"
         Me.btnOnline.Size = New System.Drawing.Size(56, 22)
         Me.btnOnline.TabIndex = 36
         Me.btnOnline.Text = "Offline"
+        Me.ToolTip1.SetToolTip(Me.btnOnline, "Toggle the connection to the Andorville™ Network")
         Me.btnOnline.UseVisualStyleBackColor = True
         '
         'btnAppInfo
         '
         Me.btnAppInfo.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnAppInfo.Location = New System.Drawing.Point(442, 12)
+        Me.btnAppInfo.Location = New System.Drawing.Point(429, 12)
         Me.btnAppInfo.Name = "btnAppInfo"
         Me.btnAppInfo.Size = New System.Drawing.Size(95, 22)
         Me.btnAppInfo.TabIndex = 45
@@ -145,9 +150,6 @@ Partial Class Main
         Me.btnProject.Text = "Project List"
         Me.btnProject.UseVisualStyleBackColor = True
         '
-        'Timer1
-        '
-        '
         'TabControl1
         '
         Me.TabControl1.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
@@ -159,7 +161,7 @@ Partial Class Main
         Me.TabControl1.Location = New System.Drawing.Point(12, 40)
         Me.TabControl1.Name = "TabControl1"
         Me.TabControl1.SelectedIndex = 0
-        Me.TabControl1.Size = New System.Drawing.Size(719, 458)
+        Me.TabControl1.Size = New System.Drawing.Size(706, 458)
         Me.TabControl1.TabIndex = 48
         '
         'TabPage3
@@ -167,7 +169,7 @@ Partial Class Main
         Me.TabPage3.Controls.Add(Me.WebBrowser1)
         Me.TabPage3.Location = New System.Drawing.Point(4, 22)
         Me.TabPage3.Name = "TabPage3"
-        Me.TabPage3.Size = New System.Drawing.Size(711, 432)
+        Me.TabPage3.Size = New System.Drawing.Size(698, 432)
         Me.TabPage3.TabIndex = 2
         Me.TabPage3.Text = "Workflow"
         Me.TabPage3.UseVisualStyleBackColor = True
@@ -189,18 +191,19 @@ Partial Class Main
         Me.TabPage1.Location = New System.Drawing.Point(4, 22)
         Me.TabPage1.Name = "TabPage1"
         Me.TabPage1.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage1.Size = New System.Drawing.Size(711, 432)
+        Me.TabPage1.Size = New System.Drawing.Size(698, 432)
         Me.TabPage1.TabIndex = 1
         Me.TabPage1.Text = "Application Tab Page"
         Me.TabPage1.UseVisualStyleBackColor = True
         '
         'TabPage2
         '
+        Me.TabPage2.Controls.Add(Me.btnShowProjectInfo)
         Me.TabPage2.Controls.Add(Me.chkConnect)
         Me.TabPage2.Controls.Add(Me.btnOpenProject)
         Me.TabPage2.Controls.Add(Me.Label13)
         Me.TabPage2.Controls.Add(Me.txtProjectPath)
-        Me.TabPage2.Controls.Add(Me.txtAppNetName)
+        Me.TabPage2.Controls.Add(Me.txtProNetName)
         Me.TabPage2.Controls.Add(Me.Label9)
         Me.TabPage2.Controls.Add(Me.btnOpenAppDir)
         Me.TabPage2.Controls.Add(Me.Label7)
@@ -239,10 +242,19 @@ Partial Class Main
         Me.TabPage2.Location = New System.Drawing.Point(4, 22)
         Me.TabPage2.Name = "TabPage2"
         Me.TabPage2.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage2.Size = New System.Drawing.Size(711, 432)
+        Me.TabPage2.Size = New System.Drawing.Size(698, 432)
         Me.TabPage2.TabIndex = 0
         Me.TabPage2.Text = "Project Information"
         Me.TabPage2.UseVisualStyleBackColor = True
+        '
+        'btnShowProjectInfo
+        '
+        Me.btnShowProjectInfo.Location = New System.Drawing.Point(6, 396)
+        Me.btnShowProjectInfo.Name = "btnShowProjectInfo"
+        Me.btnShowProjectInfo.Size = New System.Drawing.Size(113, 22)
+        Me.btnShowProjectInfo.TabIndex = 304
+        Me.btnShowProjectInfo.Text = "Show Project Info"
+        Me.btnShowProjectInfo.UseVisualStyleBackColor = True
         '
         'chkConnect
         '
@@ -279,27 +291,27 @@ Partial Class Main
         Me.txtProjectPath.Location = New System.Drawing.Point(137, 160)
         Me.txtProjectPath.Multiline = True
         Me.txtProjectPath.Name = "txtProjectPath"
-        Me.txtProjectPath.Size = New System.Drawing.Size(568, 46)
+        Me.txtProjectPath.Size = New System.Drawing.Size(555, 46)
         Me.txtProjectPath.TabIndex = 300
         '
-        'txtAppNetName
+        'txtProNetName
         '
-        Me.txtAppNetName.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+        Me.txtProNetName.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtAppNetName.Location = New System.Drawing.Point(281, 34)
-        Me.txtAppNetName.Name = "txtAppNetName"
-        Me.txtAppNetName.Size = New System.Drawing.Size(424, 20)
-        Me.txtAppNetName.TabIndex = 299
-        Me.ToolTip1.SetToolTip(Me.txtAppNetName, "The name of the Application Network containing this project")
+        Me.txtProNetName.Location = New System.Drawing.Point(281, 34)
+        Me.txtProNetName.Name = "txtProNetName"
+        Me.txtProNetName.Size = New System.Drawing.Size(411, 20)
+        Me.txtProNetName.TabIndex = 299
+        Me.ToolTip1.SetToolTip(Me.txtProNetName, "The name of the Application Network containing this project")
         '
         'Label9
         '
         Me.Label9.AutoSize = True
         Me.Label9.Location = New System.Drawing.Point(172, 39)
         Me.Label9.Name = "Label9"
-        Me.Label9.Size = New System.Drawing.Size(103, 13)
+        Me.Label9.Size = New System.Drawing.Size(84, 13)
         Me.Label9.TabIndex = 298
-        Me.Label9.Text = "Application network:"
+        Me.Label9.Text = "Project network:"
         '
         'btnOpenAppDir
         '
@@ -313,7 +325,7 @@ Partial Class Main
         'Label7
         '
         Me.Label7.AutoSize = True
-        Me.Label7.Location = New System.Drawing.Point(571, 371)
+        Me.Label7.Location = New System.Drawing.Point(571, 373)
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(41, 13)
         Me.Label7.TabIndex = 296
@@ -370,7 +382,7 @@ Partial Class Main
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtParentProject.Location = New System.Drawing.Point(281, 8)
         Me.txtParentProject.Name = "txtParentProject"
-        Me.txtParentProject.Size = New System.Drawing.Size(424, 20)
+        Me.txtParentProject.Size = New System.Drawing.Size(411, 20)
         Me.txtParentProject.TabIndex = 283
         Me.ToolTip1.SetToolTip(Me.txtParentProject, "The name of the Parent project containing this project")
         '
@@ -416,7 +428,7 @@ Partial Class Main
         Me.txtSystemPath.Location = New System.Drawing.Point(137, 316)
         Me.txtSystemPath.Multiline = True
         Me.txtSystemPath.Name = "txtSystemPath"
-        Me.txtSystemPath.Size = New System.Drawing.Size(568, 46)
+        Me.txtSystemPath.Size = New System.Drawing.Size(555, 46)
         Me.txtSystemPath.TabIndex = 84
         '
         'txtCurrentDuration
@@ -499,7 +511,7 @@ Partial Class Main
         Me.txtDataPath.Location = New System.Drawing.Point(137, 264)
         Me.txtDataPath.Multiline = True
         Me.txtDataPath.Name = "txtDataPath"
-        Me.txtDataPath.Size = New System.Drawing.Size(568, 46)
+        Me.txtDataPath.Size = New System.Drawing.Size(555, 46)
         Me.txtDataPath.TabIndex = 61
         '
         'txtDataLocationType
@@ -525,7 +537,7 @@ Partial Class Main
         Me.txtSettingsPath.Location = New System.Drawing.Point(137, 212)
         Me.txtSettingsPath.Multiline = True
         Me.txtSettingsPath.Name = "txtSettingsPath"
-        Me.txtSettingsPath.Size = New System.Drawing.Size(568, 46)
+        Me.txtSettingsPath.Size = New System.Drawing.Size(555, 46)
         Me.txtSettingsPath.TabIndex = 57
         '
         'txtSettingsLocationType
@@ -558,7 +570,7 @@ Partial Class Main
         Me.txtProjectDescription.Location = New System.Drawing.Point(85, 88)
         Me.txtProjectDescription.Multiline = True
         Me.txtProjectDescription.Name = "txtProjectDescription"
-        Me.txtProjectDescription.Size = New System.Drawing.Size(620, 40)
+        Me.txtProjectDescription.Size = New System.Drawing.Size(607, 40)
         Me.txtProjectDescription.TabIndex = 51
         '
         'Label4
@@ -576,7 +588,7 @@ Partial Class Main
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtProjectName.Location = New System.Drawing.Point(85, 62)
         Me.txtProjectName.Name = "txtProjectName"
-        Me.txtProjectName.Size = New System.Drawing.Size(620, 20)
+        Me.txtProjectName.Size = New System.Drawing.Size(607, 20)
         Me.txtProjectName.TabIndex = 49
         '
         'Label3
@@ -602,17 +614,33 @@ Partial Class Main
         'btnWebPages
         '
         Me.btnWebPages.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnWebPages.Location = New System.Drawing.Point(368, 12)
+        Me.btnWebPages.ContextMenuStrip = Me.ContextMenuStrip1
+        Me.btnWebPages.Location = New System.Drawing.Point(355, 12)
         Me.btnWebPages.Name = "btnWebPages"
         Me.btnWebPages.Size = New System.Drawing.Size(68, 22)
         Me.btnWebPages.TabIndex = 279
         Me.btnWebPages.Text = "Workflows"
         Me.btnWebPages.UseVisualStyleBackColor = True
         '
-        'Timer2
+        'ContextMenuStrip1
         '
+        Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripMenuItem1_EditWorkflowTabPage, Me.ToolStripMenuItem1_ShowStartPageInWorkflowTab})
+        Me.ContextMenuStrip1.Name = "ContextMenuStrip1"
+        Me.ContextMenuStrip1.Size = New System.Drawing.Size(248, 48)
         '
-        'Timer3
+        'ToolStripMenuItem1_EditWorkflowTabPage
+        '
+        Me.ToolStripMenuItem1_EditWorkflowTabPage.Name = "ToolStripMenuItem1_EditWorkflowTabPage"
+        Me.ToolStripMenuItem1_EditWorkflowTabPage.Size = New System.Drawing.Size(247, 22)
+        Me.ToolStripMenuItem1_EditWorkflowTabPage.Text = "Edit Workflow Tab Page"
+        '
+        'ToolStripMenuItem1_ShowStartPageInWorkflowTab
+        '
+        Me.ToolStripMenuItem1_ShowStartPageInWorkflowTab.Name = "ToolStripMenuItem1_ShowStartPageInWorkflowTab"
+        Me.ToolStripMenuItem1_ShowStartPageInWorkflowTab.Size = New System.Drawing.Size(247, 22)
+        Me.ToolStripMenuItem1_ShowStartPageInWorkflowTab.Text = "Show Start Page in Workflow Tab"
+        '
+        'Timer1
         '
         '
         'Main
@@ -620,7 +648,7 @@ Partial Class Main
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None
-        Me.ClientSize = New System.Drawing.Size(743, 510)
+        Me.ClientSize = New System.Drawing.Size(730, 510)
         Me.Controls.Add(Me.btnWebPages)
         Me.Controls.Add(Me.btnAndorville)
         Me.Controls.Add(Me.TabControl1)
@@ -628,6 +656,7 @@ Partial Class Main
         Me.Controls.Add(Me.btnOnline)
         Me.Controls.Add(Me.btnMessages)
         Me.Controls.Add(Me.btnExit)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "Main"
         Me.Text = "Andorville™ Application Template"
         Me.TabControl1.ResumeLayout(False)
@@ -635,6 +664,7 @@ Partial Class Main
         Me.TabPage1.ResumeLayout(False)
         Me.TabPage2.ResumeLayout(False)
         Me.TabPage2.PerformLayout()
+        Me.ContextMenuStrip1.ResumeLayout(False)
         Me.ResumeLayout(False)
 
     End Sub
@@ -644,7 +674,6 @@ Partial Class Main
     Friend WithEvents btnOnline As System.Windows.Forms.Button
     Friend WithEvents btnAppInfo As System.Windows.Forms.Button
     Friend WithEvents btnProject As System.Windows.Forms.Button
-    Friend WithEvents Timer1 As System.Windows.Forms.Timer
     Friend WithEvents TabControl1 As TabControl
     Friend WithEvents TabPage2 As TabPage
     Friend WithEvents TabPage1 As TabPage
@@ -685,13 +714,16 @@ Partial Class Main
     Friend WithEvents btnOpenData As Button
     Friend WithEvents btnOpenSettings As Button
     Friend WithEvents txtDataPath As TextBox
-    Friend WithEvents Timer2 As Timer
-    Friend WithEvents txtAppNetName As TextBox
+    Friend WithEvents Timer1 As Timer
+    Friend WithEvents txtProNetName As TextBox
     Friend WithEvents Label9 As Label
     Friend WithEvents ToolTip1 As ToolTip
     Friend WithEvents Label13 As Label
     Friend WithEvents txtProjectPath As TextBox
     Friend WithEvents btnOpenProject As Button
-    Friend WithEvents Timer3 As Timer
     Friend WithEvents chkConnect As CheckBox
+    Friend WithEvents ContextMenuStrip1 As ContextMenuStrip
+    Friend WithEvents ToolStripMenuItem1_EditWorkflowTabPage As ToolStripMenuItem
+    Friend WithEvents ToolStripMenuItem1_ShowStartPageInWorkflowTab As ToolStripMenuItem
+    Friend WithEvents btnShowProjectInfo As Button
 End Class

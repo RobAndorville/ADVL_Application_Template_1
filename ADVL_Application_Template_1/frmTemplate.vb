@@ -51,7 +51,39 @@
 
             'Add code to read other saved setting here:
 
+            CheckFormPos()
         End If
+    End Sub
+
+    Private Sub CheckFormPos()
+        'Check that the form can be seen on a screen.
+
+        Dim MinWidthVisible As Integer = 192 'Minimum number of X pixels visible. The form will be moved if this many form pixels are not visible.
+        Dim MinHeightVisible As Integer = 64 'Minimum number of Y pixels visible. The form will be moved if this many form pixels are not visible.
+
+        Dim FormRect As New Rectangle(Me.Left, Me.Top, Me.Width, Me.Height)
+        Dim WARect As Rectangle = Screen.GetWorkingArea(FormRect) 'The Working Area rectangle - the usable area of the screen containing the form.
+
+        'Check if the top of the form is above the top of the Working Area:
+        If Me.Top < WARect.Top Then
+            Me.Top = WARect.Top
+        End If
+
+        'Check if the top of the form is too close to the bottom of the Working Area:
+        If (Me.Top + MinHeightVisible) > (WARect.Top + WARect.Height) Then
+            Me.Top = WARect.Top + WARect.Height - MinHeightVisible
+        End If
+
+        'Check if the left edge of the form is too close to the right edge of the Working Area:
+        If (Me.Left + MinWidthVisible) > (WARect.Left + WARect.Width) Then
+            Me.Left = WARect.Left + WARect.Width - MinWidthVisible
+        End If
+
+        'Check if the right edge of the form is too close to the left edge of the Working Area:
+        If (Me.Left + Me.Width - MinWidthVisible) < WARect.Left Then
+            Me.Left = WARect.Left - Me.Width + MinWidthVisible
+        End If
+
     End Sub
 
     Protected Overrides Sub WndProc(ByRef m As Message) 'Save the form settings before the form is minimised:
@@ -98,33 +130,9 @@
 #End Region 'Form Methods ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-    'List of code sections: ===================================================================================================================================================================
-
-#Region " Variable Declarations - All the variables used in this form and this application." '=================================================================================================
-#End Region 'Variable Declarations ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Region " Properties - All the properties used in this form and this application" '============================================================================================================
-#End Region 'Properties -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Region " Process XML files - Read and write XML files." '=====================================================================================================================================
-#End Region 'Process XML Files ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Region " Form Display Methods - Code used to display this form." '============================================================================================================================
-#End Region 'Form Display Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Region " Open and Close Forms - Code used to open and close other forms." '===================================================================================================================
-#End Region 'Open and Close Forms -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Region " Form Methods - The main actions performed by this form." '===========================================================================================================================
-#End Region 'Form Methods ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 #Region " Form Events - Events that can be triggered by this form." '==========================================================================================================================
+
 #End Region 'Form Events ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    '==========================================================================================================================================================================================
 
 End Class
