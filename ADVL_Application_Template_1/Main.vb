@@ -1,6 +1,7 @@
 ﻿'==============================================================================================================================================================================================
 '
-'Copyright 2016 Signalworks Pty Ltd, ABN 26 066 681 598
+'*** 1 - Update the copyright notice *** - When using the ADVL Application Template, update the copyright notice in the new application.
+'Copyright 2016 Signalworks Pty Ltd, ABN 26 066 681 598 
 
 'Licensed under the Apache License, Version 2.0 (the "License");
 'you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ Imports System.Security.Permissions
 <PermissionSet(SecurityAction.Demand, Name:="FullTrust")>
 <System.Runtime.InteropServices.ComVisibleAttribute(True)> 'Note: There should be no blank lines between this line and the line: Public Class Main
 Public Class Main
+    '*** 2 - Update the application description *** - When using the ADVL Application Template, update the application description in the new application.
     'The ADVL_Application_Template provides template code for developing an Andorville™ software application.
     '
     'An Andorville™ application has the following features:
@@ -41,6 +43,9 @@ Public Class Main
     '  Press the Add button. Press the OK button.
     'The Utilities Library is used for Project Management, Archive file management, running XSequence files and running XMessage files.
     'If there are problems with a reference, try deleting it from the references list and adding it again.
+
+    'Add a reference to System.IO.Compression:
+    '  Project \ Add Refernce... \ Assemblies \ System.IO.Compression
 
     'ADD THE SERVICE REFERENCE: ===================================================================================================
     'A service reference to the Message Service must be added to the source code before this service can be used.
@@ -171,12 +176,18 @@ Public Class Main
     'Declare Forms used by the application:
     Public WithEvents TemplateForm As frmTemplate
     Public WithEvents WebPageList As frmWebPageList
+    Public WithEvents ProjectArchive As frmArchive 'Form used to view the files in a Project archive
+    Public WithEvents SettingsArchive As frmArchive 'Form used to view the files in a Settings archive
+    Public WithEvents DataArchive As frmArchive 'Form used to view the files in a Data archive
+    Public WithEvents SystemArchive As frmArchive 'Form used to view the files in a System archive
 
     Public WithEvents NewHtmlDisplay As frmHtmlDisplay
     Public HtmlDisplayFormList As New ArrayList 'Used for displaying multiple HtmlDisplay forms.
 
     Public WithEvents NewWebPage As frmWebPage
     Public WebPageFormList As New ArrayList 'Used for displaying multiple WebView forms.
+
+
 
     'Declare objects used to connect to the Message Service:
     Public client As ServiceReference1.MsgServiceClient
@@ -235,14 +246,28 @@ Public Class Main
     Private WithEvents bgwComCheck As New System.ComponentModel.BackgroundWorker 'Used to perform communication checks on a separate thread.
 
     Public WithEvents bgwSendMessage As New System.ComponentModel.BackgroundWorker 'Used to send a message through the Message Service.
-    Dim SendMessageParams As New clsSendMessageParams 'This holds the Send Message parameters: .ProjectNetworkName, .ConnectionName & .Message
+    Public SendMessageParams As New clsSendMessageParams 'This holds the Send Message parameters: .ProjectNetworkName, .ConnectionName & .Message
 
     'Alternative SendMessage background worker - needed to send a message while instructions are being processed.
     Public WithEvents bgwSendMessageAlt As New System.ComponentModel.BackgroundWorker 'Used to send a message through the Message Service - alternative backgound worker.
-    Dim SendMessageParamsAlt As New clsSendMessageParams 'This hold the Send Message parameters: .ProjectNetworkName, .ConnectionName & .Message - for the alternative background worker.
+    Public SendMessageParamsAlt As New clsSendMessageParams 'This holds the Send Message parameters: .ProjectNetworkName, .ConnectionName & .Message - for the alternative background worker.
 
     Public WithEvents bgwRunInstruction As New System.ComponentModel.BackgroundWorker 'Used to run a single instruction
-    Dim InstructionParams As New clsInstructionParams 'This holds the Info and Locn parameters of an instruction.
+    Public InstructionParams As New clsInstructionParams 'This holds the Info and Locn parameters of an instruction.
+
+    'TEST CODE - NOT USED.
+    ''UPDATE 6Oct21.
+    'Public WithEvents bgwConnectToComNet As New System.ComponentModel.BackgroundWorker 'New version of ConnectToComNet. This version allows the connection process to be stopped and the application run offline.
+    'Dim ConnName As String 'The connection name used to connect to the Message Service. If ConnName is blank, the Application Name will be used as the connection name.
+
+    Dim myLock As New Object 'Lock object used with SyncLock in bgwCancelConn.
+
+    'UPDATE 8Oct21.
+    'bgwConnectToComNet does not work - Try cancelling the connection attempt using a separate bgw:
+    Public WithEvents bgwCancelConn As New System.ComponentModel.BackgroundWorker 'Used to cancel the Client.Connect while it is trying to connect.
+
+    Private ConnCancelled As Boolean = False 'True if the connection attempt has been cancelled.
+
 
 
 #End Region 'Variable Declarations ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -450,7 +475,19 @@ Public Class Main
         End Set
     End Property
 
+
+
+    Public Sub New()
+
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        ' Add any initialization after the InitializeComponent() call.
+
+    End Sub
+
     Private _workflowFileName As String = "" 'The file name of the html document displayed in the Workflow tab.
+
     Public Property WorkflowFileName As String
         Get
             Return _workflowFileName
@@ -479,6 +516,7 @@ Public Class Main
                                <AdvlNetworkExePath><%= AdvlNetworkExePath %></AdvlNetworkExePath>
                                <ShowXMessages><%= ShowXMessages %></ShowXMessages>
                                <ShowSysMessages><%= ShowSysMessages %></ShowSysMessages>
+                               <WorkFlowFileName><%= WorkflowFileName %></WorkFlowFileName>
                                <!---->
                                <SelectedTabIndex><%= TabControl1.SelectedIndex %></SelectedTabIndex>
                            </FormSettings>
@@ -513,6 +551,8 @@ Public Class Main
 
             If Settings.<FormSettings>.<ShowXMessages>.Value <> Nothing Then ShowXMessages = Settings.<FormSettings>.<ShowXMessages>.Value
             If Settings.<FormSettings>.<ShowSysMessages>.Value <> Nothing Then ShowSysMessages = Settings.<FormSettings>.<ShowSysMessages>.Value
+
+            If Settings.<FormSettings>.<WorkFlowFileName>.Value <> Nothing Then WorkflowFileName = Settings.<FormSettings>.<WorkFlowFileName>.Value
 
             'Add code to read other saved setting here:
             If Settings.<FormSettings>.<SelectedTabIndex>.Value <> Nothing Then TabControl1.SelectedIndex = Settings.<FormSettings>.<SelectedTabIndex>.Value
@@ -567,15 +607,19 @@ Public Class Main
         'These properties will be saved in the Application_Info.xml file in the application directory.
         'If this file is deleted, it will be re-created using these default application properties.
 
+        '*** 3 - Update the application name *** - When using the ADVL Application Template, update the DefaultAppProperties() application name in the new application.
         'Change this to show your application Name, Description and Creation Date.
         ApplicationInfo.Name = "ADVL_Application_Template_1"
 
         'ApplicationInfo.ApplicationDir is set when the application is started.
         ApplicationInfo.ExecutablePath = Application.ExecutablePath
 
+        '*** 4 - Update the application description *** - When using the ADVL Application Template, update the DefaultAppProperties() application description in the new application.
         ApplicationInfo.Description = "Application template provides template code for developing an Andorville™ software application."
+        '*** 5 - Update the application creation date *** - When using the ADVL Application Template, update the DefaultAppProperties() application creation date in the new application.
         ApplicationInfo.CreationDate = "7-Jan-2016 12:00:00"
 
+        '*** 6 - Update the application author *** - When using the ADVL Application Template, update the DefaultAppProperties() application author in the new application.
         'Author -----------------------------------------------------------------------------------------------------------
         'Change this to show your Name, Description and Contact information.
         ApplicationInfo.Author.Name = "Signalworks Pty Ltd"
@@ -601,6 +645,7 @@ Public Class Main
         ApplicationInfo.Version.Build = My.Application.Info.Version.Build
         ApplicationInfo.Version.Revision = My.Application.Info.Version.Revision
 
+        '*** 7 - Update the application copyright notice *** - When using the ADVL Application Template, update the DefaultAppProperties() application copyright notice in the new application.
         'Copyright --------------------------------------------------------------------------------------------------------
         'Add your copyright information here.
         ApplicationInfo.Copyright.OwnerName = "Signalworks Pty Ltd, ABN 26 066 681 598"
@@ -639,6 +684,7 @@ Public Class Main
         Trademark5.GenericTerm = "software"
         ApplicationInfo.Trademarks.Add(Trademark5)
 
+        '*** 8 - Update the application license information *** - When using the ADVL Application Template, update the DefaultAppProperties() application license information in the new application.
         'License -------------------------------------------------------------------------------------------------------
         'Add your license information here.
         ApplicationInfo.License.CopyrightOwnerName = "Signalworks Pty Ltd, ABN 26 066 681 598"
@@ -681,6 +727,7 @@ Public Class Main
         'ApplicationInfo.License.Notice = ""
         'ApplicationInfo.License.Text = ""
 
+        '*** 9 - Update the application source code information *** - When using the ADVL Application Template, update the DefaultAppProperties() application source information in the new application.
         'Source Code: --------------------------------------------------------------------------------------------------
         'Add your source code information here if required.
         'THIS SECTION WILL BE UPDATED TO ALLOW A GITHUB LINK.
@@ -893,11 +940,11 @@ Public Class Main
         'Read the Application Information file: ---------------------------------------------
         ApplicationInfo.ApplicationDir = My.Application.Info.DirectoryPath.ToString 'Set the Application Directory property
 
-        'Get the Application Version Information:
-        ApplicationInfo.Version.Major = My.Application.Info.Version.Major
-        ApplicationInfo.Version.Minor = My.Application.Info.Version.Minor
-        ApplicationInfo.Version.Build = My.Application.Info.Version.Build
-        ApplicationInfo.Version.Revision = My.Application.Info.Version.Revision
+        ''Get the Application Version Information:
+        'ApplicationInfo.Version.Major = My.Application.Info.Version.Major
+        'ApplicationInfo.Version.Minor = My.Application.Info.Version.Minor
+        'ApplicationInfo.Version.Build = My.Application.Info.Version.Build
+        'ApplicationInfo.Version.Revision = My.Application.Info.Version.Revision
 
         If ApplicationInfo.ApplicationLocked Then
             MessageBox.Show("The application is locked. If the application is not already in use, remove the 'Application_Info.lock file from the application directory: " & ApplicationInfo.ApplicationDir, "Notice", MessageBoxButtons.OK)
@@ -933,9 +980,15 @@ Public Class Main
 
         Me.Show() 'Show this form before showing the Message form - This will show the App icon on top in the TaskBar.
 
+        '*** 13 - Update the application name *** - When using the ADVL Application Template, update the Main.Load() application name in the new application.
         'Start showing messages here - Message system is set up.
-        Message.AddText("------------------- Starting Application: ADVL Application Template ----------------- " & vbCrLf, "Heading")
-        Message.AddText("Application usage: Total duration = " & Format(ApplicationUsage.TotalDuration.TotalHours, "#.##") & " hours" & vbCrLf, "Normal")
+        Message.AddText("------------------- Starting Application: ADVL Coordinates 2 ----------------- " & vbCrLf, "Heading")
+        'Message.AddText("Application usage: Total duration = " & Format(ApplicationUsage.TotalDuration.TotalHours, "#.##") & " hours" & vbCrLf, "Normal")
+        Dim TotalDuration As String = ApplicationUsage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                           ApplicationUsage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                           ApplicationUsage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                           ApplicationUsage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
+        Message.AddText("Application usage: Total duration = " & TotalDuration & vbCrLf, "Normal")
 
         'https://msdn.microsoft.com/en-us/library/z2d603cy(v=vs.80).aspx#Y550
         'Process any command line arguments:
@@ -1074,11 +1127,19 @@ Public Class Main
         bgwRunInstruction.WorkerReportsProgress = True
         bgwRunInstruction.WorkerSupportsCancellation = True
 
+        ''UPDATE 6Oct21
+        'bgwConnectToComNet.WorkerReportsProgress = True
+        'bgwConnectToComNet.WorkerSupportsCancellation = True
+
+        'UPDATE 8Oct21
+        bgwCancelConn.WorkerSupportsCancellation = True
+
         InitialiseForm() 'Initialise the form for a new project.
 
         'END   Initialise the form: ---------------------------------------------------------------
 
         RestoreFormSettings() 'Restore the form settings
+        OpenStartPage()
         Message.ShowXMessages = ShowXMessages
         Message.ShowSysMessages = ShowSysMessages
         RestoreProjectSettings() 'Restore the Project settings
@@ -1087,24 +1148,113 @@ Public Class Main
 
         Message.AddText("------------------- Started OK -------------------------------------------------------------------------- " & vbCrLf & vbCrLf, "Heading")
 
+
+        'Dim dr As System.Windows.Forms.DialogResult
+        'dr = MessageBox.Show("Press OK to cancel the connection and run in Standalone mode.", "Notice", MessageBoxButtons.OK)
+
+        bgwCancelConn.RunWorkerAsync() 'Show the cancel dialog.
+
+        'For Each OpenForm In My.Application.OpenForms
+        '    Message.Add("Open Form name :" & OpenForm.ToString & vbCrLf)
+        'Next
+
+        ''Check if a new form can be used to cancel the connection attempt:
+        'WebPageList = New frmWebPageList
+        'WebPageList.Show()
+        'DOESNT WORK - Form start to display but cannot be used until the main form has finished loading.
+
+        'Try starting it in bgwCancelConn
+
+
         If StartupConnectionName = "" Then
             If Project.ConnectOnOpen Then
                 ConnectToComNet() 'The Project is set to connect when it is opened.
+                'bgwConnectToComNet.RunWorkerAsync("")
+                'NewConnectToComNet("")
             ElseIf ApplicationInfo.ConnectOnStartup Then
                 ConnectToComNet() 'The Application is set to connect when it is started.
+                'bgwConnectToComNet.RunWorkerAsync("")
             Else
                 'Don't connect to ComNet.
             End If
         Else
             'Connect to ComNet using the connection name StartupConnectionName.
             ConnectToComNet(StartupConnectionName)
+            'bgwConnectToComNet.RunWorkerAsync(StartupConnectionName)
+        End If
+
+        If bgwCancelConn.IsBusy Then
+
+            'Message.Add("bgwCancelConn.Container.Components.Count : " & bgwCancelConn.Container.Components.Count & vbCrLf) 'ERROR
+
+            SendKeys.Send("{ESC}") 'Close the MessageBox
+
+            bgwCancelConn.CancelAsync()
+            bgwCancelConn.Dispose()
+            'bgwCancelConn = Nothing
+            Message.Add("Cancel Connection Dialog stopped." & vbCrLf)
+
+
+            'Message.Add("My.Application.OpenForms.Count :" & My.Application.OpenForms.Count & vbCrLf)
+            'Dim I As Integer
+            'For I = 1 To My.Application.OpenForms.Count
+            '    Message.Add("Open Form name :" & My.Application.OpenForms(I - 1).Text & vbCrLf)
+            'Next
+
+            'For Each OpenForm In My.Application.OpenForms
+            '    Message.Add("Open Form name :" & OpenForm.ToString & vbCrLf)
+            'Next
+        End If
+
+        'Get the Application Version Information:
+        If System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed Then
+            'Application is network deployed.
+            ApplicationInfo.Version.Number = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString
+            ApplicationInfo.Version.Major = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.Major
+            ApplicationInfo.Version.Minor = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.Minor
+            ApplicationInfo.Version.Build = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.Build
+            ApplicationInfo.Version.Revision = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.Revision
+            ApplicationInfo.Version.Source = "Publish"
+            Message.Add("Application version: " & System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString & vbCrLf)
+        Else
+            'Application is not network deployed.
+            ApplicationInfo.Version.Number = My.Application.Info.Version.ToString
+            ApplicationInfo.Version.Major = My.Application.Info.Version.Major
+            ApplicationInfo.Version.Minor = My.Application.Info.Version.Minor
+            ApplicationInfo.Version.Build = My.Application.Info.Version.Build
+            ApplicationInfo.Version.Revision = My.Application.Info.Version.Revision
+            ApplicationInfo.Version.Source = "Assembly"
+            Message.Add("Application version: " & My.Application.Info.Version.ToString & vbCrLf)
         End If
 
     End Sub
 
+    'THE FOLLOWING CODE DOESNT FIX THE ERROR THAT IS RAISED WHEN THE CONNECTION IS MADE USING bgwConnectToComNet
+    'Private Sub Main_Shown(sender As Object, e As EventArgs) Handles Me.Shown
+    '    'This code is executed after the form is shown
+
+    '    If StartupConnectionName = "" Then
+    '        If Project.ConnectOnOpen Then
+    '            'ConnectToComNet() 'The Project is set to connect when it is opened.
+    '            'bgwConnectToComNet.RunWorkerAsync("")
+    '            NewConnectToComNet("")
+    '        ElseIf ApplicationInfo.ConnectOnStartup Then
+    '            ConnectToComNet() 'The Application is set to connect when it is started.
+    '            'bgwConnectToComNet.RunWorkerAsync("")
+    '        Else
+    '            'Don't connect to ComNet.
+    '        End If
+    '    Else
+    '        'Connect to ComNet using the connection name StartupConnectionName.
+    '        ConnectToComNet(StartupConnectionName)
+    '        'bgwConnectToComNet.RunWorkerAsync(StartupConnectionName)
+    '    End If
+
+    'End Sub
+
     Private Sub InitialiseForm()
         'Initialise the form for a new project.
-        OpenStartPage()
+        'OpenStartPage()
     End Sub
 
     Private Sub ShowProjectInfo()
@@ -1160,16 +1310,25 @@ Public Class Main
             chkConnect.Checked = False
         End If
 
-        txtTotalDuration.Text = Project.Usage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
-                                Project.Usage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
-                                Project.Usage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
-                                Project.Usage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c)
+        'txtTotalDuration.Text = Project.Usage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
+        '                        Project.Usage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
+        '                        Project.Usage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
+        '                        Project.Usage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c)
 
-        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
-                                  Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
-                                  Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
-                                  Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+        'txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
+        '                          Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
+        '                          Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
+        '                          Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
 
+        txtTotalDuration.Text = Project.Usage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                Project.Usage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                Project.Usage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                Project.Usage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
+
+        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                                  Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                                  Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                                  Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
 
     End Sub
 
@@ -1444,9 +1603,12 @@ Public Class Main
 #Region " Start Page Code" '=========================================================================================================================================
 
     Public Sub OpenStartPage()
-        'Open the StartPage.html file and display in the Workflow tab.
+        'Open the workflow page:
 
-        If Project.DataFileExists("StartPage.html") Then
+        If Project.DataFileExists(WorkflowFileName) Then
+            'Note: WorkflowFileName should have been restored when the application started.
+            DisplayWorkflow()
+        ElseIf Project.DataFileExists("StartPage.html") Then
             WorkflowFileName = "StartPage.html"
             DisplayWorkflow()
         Else
@@ -1454,6 +1616,16 @@ Public Class Main
             WorkflowFileName = "StartPage.html"
             DisplayWorkflow()
         End If
+
+        'Open the StartPage.html file and display in the Workflow tab.
+        'If Project.DataFileExists("StartPage.html") Then
+        '    WorkflowFileName = "StartPage.html"
+        '    DisplayWorkflow()
+        'Else
+        '    CreateStartPage()
+        '    WorkflowFileName = "StartPage.html"
+        '    DisplayWorkflow()
+        'End If
 
     End Sub
 
@@ -1497,8 +1669,10 @@ Public Class Main
 
         sb.Append("<body style=""font-family:arial;"">" & vbCrLf & vbCrLf)
 
+        '*** 11 - Update the application name *** - When using the ADVL Application Template, update the AppInfoHtmlString() application name in the new application.
         sb.Append("<h2>" & "Andorville&trade; Application Template" & "</h2>" & vbCrLf & vbCrLf) 'Add the page title.
         sb.Append("<hr>" & vbCrLf) 'Add a horizontal divider line.
+        '*** 12 - Update the application description *** - When using the ADVL Application Template, update the AppInfoHtmlString() application description in the new application.
         sb.Append("<p>The Application Template provides the initial code for a new Andorville&trade; application.</p>" & vbCrLf) 'Add an application description.
         sb.Append("<hr>" & vbCrLf & vbCrLf) 'Add a horizontal divider line.
 
@@ -2559,6 +2733,16 @@ Public Class Main
 
     Private Sub Project_Closing() Handles Project.Closing
         'The current project is closing.
+        CloseProject()
+        'SaveFormSettings() 'Save the form settings - they are saved in the Project before is closes.
+        'SaveProjectSettings() 'Update this subroutine if project settings need to be saved.
+        'Project.Usage.SaveUsageInfo() 'Save the current project usage information.
+        'Project.UnlockProject() 'Unlock the current project before it Is closed.
+        'If ConnectedToComNet Then DisconnectFromComNet() 'ADDED 9Apr20
+    End Sub
+
+    Private Sub CloseProject()
+        'Close the Project:
         SaveFormSettings() 'Save the form settings - they are saved in the Project before is closes.
         SaveProjectSettings() 'Update this subroutine if project settings need to be saved.
         Project.Usage.SaveUsageInfo() 'Save the current project usage information.
@@ -2568,7 +2752,51 @@ Public Class Main
 
     Private Sub Project_Selected() Handles Project.Selected
         'A new project has been selected.
+        OpenProject()
+        'RestoreFormSettings()
+        'Project.ReadProjectInfoFile()
 
+        'Project.ReadParameters()
+        'Project.ReadParentParameters()
+        'If Project.ParentParameterExists("ProNetName") Then
+        '    Project.AddParameter("ProNetName", Project.ParentParameter("ProNetName").Value, Project.ParentParameter("ProNetName").Description) 'AddParameter will update the parameter if it already exists.
+        '    ProNetName = Project.Parameter("ProNetName").Value
+        'Else
+        '    ProNetName = Project.GetParameter("ProNetName")
+        'End If
+        'If Project.ParentParameterExists("ProNetPath") Then 'Get the parent parameter value - it may have been updated.
+        '    Project.AddParameter("ProNetPath", Project.ParentParameter("ProNetPath").Value, Project.ParentParameter("ProNetPath").Description) 'AddParameter will update the parameter if it already exists.
+        '    ProNetPath = Project.Parameter("ProNetPath").Value
+        'Else
+        '    ProNetPath = Project.GetParameter("ProNetPath") 'If the parameter does not exist, the value is set to ""
+        'End If
+        'Project.SaveParameters() 'These should be saved now - child projects look for parent parameters in the parameter file.
+
+        'Project.LockProject() 'Lock the project while it is open in this application.
+
+        'Project.Usage.StartTime = Now
+
+        'ApplicationInfo.SettingsLocn = Project.SettingsLocn
+        'Message.SettingsLocn = Project.SettingsLocn
+        'Message.Show() 'Added 18May19
+
+        ''Restore the new project settings:
+        'RestoreProjectSettings() 'Update this subroutine if project settings need to be restored.
+
+        'ShowProjectInfo()
+
+        'If Project.ConnectOnOpen Then
+        '    ConnectToComNet() 'The Project is set to connect when it is opened.
+        'ElseIf ApplicationInfo.ConnectOnStartup Then
+        '    ConnectToComNet() 'The Application is set to connect when it is started.
+        'Else
+        '    'Don't connect to ComNet.
+        'End If
+
+    End Sub
+
+    Private Sub OpenProject()
+        'Open the Project:
         RestoreFormSettings()
         Project.ReadProjectInfoFile()
 
@@ -2608,7 +2836,6 @@ Public Class Main
         Else
             'Don't connect to ComNet.
         End If
-
     End Sub
 
     Private Sub chkConnect_LostFocus(sender As Object, e As EventArgs) Handles chkConnect.LostFocus
@@ -2685,14 +2912,19 @@ Public Class Main
             'The Message Service is Running.
         Else 'The Message Service is NOT running'
             'Start the Andorville™ Network:
-            If AdvlNetworkAppPath = "" Then
-                Message.AddWarning("Andorville™ Network application path is unknown." & vbCrLf)
+            If ConnCancelled = True Then
+                Message.AddWarning("The connection attempt has been cancelled." & vbCrLf)
+                Exit Sub
             Else
-                If System.IO.File.Exists(AdvlNetworkExePath) Then 'OK to start the Message Service application:
-                    Shell(Chr(34) & AdvlNetworkExePath & Chr(34), AppWinStyle.NormalFocus) 'Start Message Service application with no argument
+                If AdvlNetworkAppPath = "" Then
+                    Message.AddWarning("Andorville™ Network application path is unknown." & vbCrLf)
                 Else
-                    'Incorrect Message Service Executable path.
-                    Message.AddWarning("Andorville™ Network exe file not found. Service not started." & vbCrLf)
+                    If System.IO.File.Exists(AdvlNetworkExePath) Then 'OK to start the Message Service application:
+                        Shell(Chr(34) & AdvlNetworkExePath & Chr(34), AppWinStyle.NormalFocus) 'Start Message Service application with no argument
+                    Else
+                        'Incorrect Message Service Executable path.
+                        Message.AddWarning("Andorville™ Network exe file not found. Service not started." & vbCrLf)
+                    End If
                 End If
             End If
         End If
@@ -2792,6 +3024,10 @@ Public Class Main
         'END UPDATE
 
         If ConnectedToComNet = False Then
+            If ConnCancelled = True Then
+                Message.AddWarning("The connection attempt has been cancelled." & vbCrLf)
+                Exit Sub
+            End If
             If IsNothing(client) Then
                 client = New ServiceReference1.MsgServiceClient(New System.ServiceModel.InstanceContext(New MsgServiceCallback))
             End If
@@ -2843,6 +3079,377 @@ Public Class Main
             Message.AddWarning("Already connected to the Andorville™ Network (Message Service)." & vbCrLf)
         End If
     End Sub
+
+
+
+    'THIS WAS TEST CODE - NOT USED:
+    Private Sub NewConnectToComNet(ByVal ConnName As String) 'New Version - calls a separate thread to make the connection.
+        'Connect to the Message Service (ComNet) with the connection name ConnName.
+
+        If IsNothing(client) Then 'Create the client
+            client = New ServiceReference1.MsgServiceClient(New System.ServiceModel.InstanceContext(New MsgServiceCallback))
+        ElseIf client.State = ServiceModel.CommunicationState.Faulted Then 'Try to fix the client
+            client = Nothing
+            client = New ServiceReference1.MsgServiceClient(New System.ServiceModel.InstanceContext(New MsgServiceCallback))
+        End If
+
+        'bgwConnectToComNet.RunWorkerAsync(ConnName) 'Use a separate thread to try to connect to the Message Service.
+
+        'Wait for bgwConnectToComNet to finish processing
+        Dim StartTime As Date = Now
+        Dim Duration As TimeSpan
+        'While bgwConnectToComNet.IsBusy
+        '    System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+        '    Duration = Now - StartTime
+        '    If Duration.Seconds > 16 Then
+        '        'bgwConnectToComNet.CancelAsync()
+        '        Exit While
+        '    End If
+        'End While
+
+        Debug.WriteLine("ProNetName = " & ProNetName)
+        Debug.WriteLine("ConnName = " & ConnName)
+
+        'While client.ConnectionExists(ProNetName, ConnName) = False
+        While ConnectedToComNet = False
+            System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+            Duration = Now - StartTime
+            Debug.WriteLine("Duration = " & Duration.Seconds)
+            If Duration.Seconds > 16 Then
+                'bgwConnectToComNet.CancelAsync()
+                Exit While
+            End If
+        End While
+
+        'The loop exits after 1 second but still returns a threading error.
+        'Wait unti the BackgroundWorker exits:
+
+        'While bgwConnectToComNet.IsBusy
+        '    System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+        '    Duration = Now - StartTime
+        '    Debug.WriteLine("Duration = " & Duration.Seconds)
+        '    If Duration.Seconds > 16 Then
+        '        'bgwConnectToComNet.CancelAsync()
+        '        Exit While
+        '    End If
+        'End While
+
+        'SAME ERROR!!!
+
+        'Try waiting for the connection:
+        'While client.ConnectionExists(ProNetName, ConnName) = False
+        '    System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+        '    Duration = Now - StartTime
+        '    Debug.WriteLine("Duration = " & Duration.Seconds)
+        '    If Duration.Seconds > 16 Then Exit While
+        'End While
+
+        'SAME ERROR!!!
+
+        'While bgwConnectToComNet.IsBusy
+        '    System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+        '    Duration = Now - StartTime
+        '    Debug.WriteLine("Duration = " & Duration.Seconds)
+        '    If Duration.Seconds > 16 Then
+        '        'bgwConnectToComNet.CancelAsync()
+        '        Exit While
+        '    End If
+        'End While
+
+
+
+        If ConnectedToComNet = True Then
+            client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+            btnOnline.Text = "Online"
+            btnOnline.ForeColor = Color.ForestGreen
+            'I = 16
+        End If
+
+        'While client.ConnectionExists(ProNetName, ConnName) = False
+        '    System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+        '    Duration = Now - StartTime
+        '    If Duration.Seconds > 16 Then Exit While
+        'End While
+
+        'Dim I As Integer
+        'For I = 1 To 16
+        '    System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+        '    SyncLock myLock
+        '        If ConnectedToComNet = True Then
+        '            client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+        '            btnOnline.Text = "Online"
+        '            btnOnline.ForeColor = Color.ForestGreen
+        '            I = 16
+        '        End If
+        '    End SyncLock
+        'Next
+
+
+
+        SendApplicationInfo()
+        SendProjectInfo()
+        client.GetAdvlNetworkAppInfoAsync() 'Update the Exe Path in case it has changed. This path may be needed in the future to start the ComNet (Message Service).
+
+        'SHOW OPTION TO CANCEL AND RUN IN STANDALONE MODE!!!
+
+    End Sub
+
+    Private Sub bgwCancelConn_DoWork(sender As Object, e As DoWorkEventArgs) Handles bgwCancelConn.DoWork
+
+
+        'Dim MB As MessageBox("Press OK to cancel the connection and run in Standalone mode.",)
+
+        'Dim frm As New Form
+
+        'This code results in an error:
+        'WebPageList = New frmWebPageList
+        'WebPageList.Show()
+
+        'This code results in an error:
+        'Dim NewForm As New frmWebPageList
+        'NewForm.Show()
+
+
+        'Dim MBox As MessageBox()
+        'Dim Result As
+
+        'ERROR:
+        'WebPageList = New frmWebPageList
+        'WebPageList.Show()
+
+
+        Dim dr As System.Windows.Forms.DialogResult
+
+        'dr = MessageBox.Show("Press OK to cancel the connection and run in Standalone mode.", "Notice", MessageBoxButtons.OK)
+        'dr = MessageBox.Show("Press OK to cancel the connection and run in Standalone mode.", "Notice", MessageBoxButtons.OKCancel)
+        'dr = MessageBox.Show(Me, "Press OK to cancel the connection and run in Standalone mode.", "Notice", MessageBoxButtons.OKCancel) 'ERROR
+        'dr = MessageBox.Show("Press OK to cancel the connection and run in Standalone mode.", "Notice", MessageBoxButtons.OKCancel)
+        'dr = MessageBox.Show("Press OK to cancel the connection and run in Standalone mode.", "Notice", MessageBoxButtons.OK) 'Only need the OK button
+        'dr = MessageBox.Show("Press OK to run in Stand-alone mode.", "Attempting to connect to the Message Service.", MessageBoxButtons.OK) 'Only need the OK button ERROR
+        dr = MessageBox.Show("Press OK to run in Stand-alone mode.", "Attempting to connect to the Message Service.", MessageBoxButtons.OKCancel) 'Only need the OK button ERROR
+        If dr = System.Windows.Forms.DialogResult.OK Then
+            SyncLock myLock
+                ConnCancelled = True
+                'client.Endpoint.Binding.SendTimeout = New System.TimeSpan(0, 0, 0) 'This does not seem to work. THe original 16 second timeout is still used.
+                client.Close()
+                Debug.WriteLine("Client Closed")
+            End SyncLock
+        End If
+
+        ''Try looping:
+        'Dim I As Integer
+        'For I = 1 To 16
+        '    dr = MessageBox.Show("Press OK to cancel the connection and run in Standalone mode." & I, "Notice", MessageBoxButtons.OK)
+        '    If dr = System.Windows.Forms.DialogResult.OK Then
+        '        SyncLock myLock
+        '            ConnCancelled = True
+        '            'client.Endpoint.Binding.SendTimeout = New System.TimeSpan(0, 0, 0) 'This does not seem to work. THe original 16 second timeout is still used.
+        '            client.Close()
+        '            Exit For
+        '        End SyncLock
+        '    End If
+        '    System.Threading.Thread.Sleep(500) 'Pause for 500ms
+        '    dr = Nothing
+        'Next
+        'DOESNT WORK
+
+    End Sub
+
+    'THIS WAS TEST CODE - NOT USED:
+    'This causes an error:
+    'Private Sub bgwCancelConn_Disposed(sender As Object, e As DoWorkEventArgs) Handles bgwCancelConn.Disposed
+    '    'WebPageList.Close() 'ERROR
+    'End Sub
+
+    'THIS WAS TEST CODE - NOT USED:
+    'Private Sub bgwConnectToComNet_DoWork(sender As Object, e As String) Handles bgwConnectToComNet.DoWork
+    'Private Sub bgwConnectToComNet_DoWork(sender As Object, e As DoWorkEventArgs) Handles bgwConnectToComNet.DoWork
+    '    'Connect to the Message Service on a separate thread.
+
+    '    'Note: Use SyncLock if a global variable will be modified in a background worker. https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/statements/synclock-statement
+
+    '    'UPDATE: this is now done in NewConnectToComNet
+    '    'SyncLock myLock
+    '    '    If IsNothing(client) Then
+    '    '        client = New ServiceReference1.MsgServiceClient(New System.ServiceModel.InstanceContext(New MsgServiceCallback))
+    '    '    End If
+    '    'End SyncLock
+
+    '    Try
+    '        SyncLock myLock
+    '            client.Endpoint.Binding.SendTimeout = New System.TimeSpan(0, 0, 16) 'Temporarily set the send timeaout to 16 seconds (8 seconds is too short for a slow computer!)
+    '            'ConnectionName = ConnName 'This name will be modified if it is already used in an existing connection.
+    '            ConnectionName = e.Argument 'Use the passed connection name.
+    '            If ConnectionName = "" Then ConnectionName = ApplicationInfo.Name
+    '            ConnectionName = client.Connect(ProNetName, ApplicationInfo.Name, ConnectionName, Project.Name, Project.Description, Project.Type, Project.Path, False, False)
+    '            'ConnectionName = client.ConnectAsync(ProNetName, ApplicationInfo.Name, ConnectionName, Project.Name, Project.Description, Project.Type, Project.Path, False, False)
+    '        End SyncLock
+
+    '        If ConnectionName <> "" Then
+    '            'Message.Add("Connected to the Andorville™ Network with Connection Name: [" & ProNetName & "]." & ConnectionName & vbCrLf)
+    '            'bgwConnectToComNet.ReportProgress(1, "Connected to the Andorville™ Network with Connection Name: [" & ProNetName & "]." & ConnectionName & vbCrLf)
+
+    '            'bgwConnectToComNet.ReportProgress(1, "Connected")
+    '            'UPDATE: Trying to update ConnectedToComNet directly - to avoid delay:
+    '            SyncLock myLock
+    '                ConnectedToComNet = True
+    '                client.Endpoint.Binding.SendTimeout = New System.TimeSpan(0, 0, 0)
+    '            End SyncLock
+
+
+    '            'The following code is now run in bgwConnectToComNet.ProgressChanged
+    '            'client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '            'btnOnline.Text = "Online"
+    '            'btnOnline.ForeColor = Color.ForestGreen
+    '            'ConnectedToComNet = True
+    '            'SendApplicationInfo()
+    '            'SendProjectInfo()
+    '            'client.GetAdvlNetworkAppInfoAsync() 'Update the Exe Path in case it has changed. This path may be needed in the future to start the ComNet (Message Service).
+
+    '            'UPDATE: commented out in an attempt to avoid error
+    '            'bgwComCheck.WorkerReportsProgress = True
+    '            'bgwComCheck.WorkerSupportsCancellation = True
+    '            'If bgwComCheck.IsBusy Then
+    '            '    'The ComCheck thread is already running.
+    '            'Else
+    '            '    bgwComCheck.RunWorkerAsync() 'Start the ComCheck thread.
+    '            'End If
+    '            'Exit Sub 'Connection made OK
+    '        Else
+    '            'Message.Add("Connection to the Andorville™ Network failed!" & vbCrLf)
+    '            'Message.Add("The Andorville™ Network was not found. Attempting to start it." & vbCrLf)
+    '            'bgwConnectToComNet.ReportProgress(1, "The Andorville™ Network was not found. Attempting to start it." & vbCrLf)
+    '            'SyncLock myLock
+    '            '    client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '            'End SyncLock
+    '        End If
+    '    Catch ex As System.TimeoutException
+    '        'Message.Add("Message Service Check Timeout error. Check if the Andorville™ Network (Message Service) is running." & vbCrLf)
+    '        'bgwConnectToComNet.ReportProgress(1, "Message Service Check Timeout error. Check if the Andorville™ Network (Message Service) is running." & vbCrLf)
+    '        'SyncLock myLock
+    '        '    client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '        'End SyncLock
+
+    '        'Message.Add("Attempting to start the Message Service." & vbCrLf)
+    '        'bgwConnectToComNet.ReportProgress(1, "Attempting to start the Message Service." & vbCrLf)
+    '    Catch ex As Exception
+    '        'Message.Add("Error message: " & ex.Message & vbCrLf)
+    '        'bgwConnectToComNet.ReportProgress(1, "Error message: " & ex.Message & vbCrLf)
+    '        'SyncLock myLock
+    '        '    client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '        'End SyncLock
+
+    '        'Message.Add("Attempting to start the Message Service." & vbCrLf)
+    '        'bgwConnectToComNet.ReportProgress(1, "Attempting to start the Message Service." & vbCrLf)
+    '    End Try
+    '    'END UPDATE
+
+    '    'UPDATE No longer required??? NewConnectToComNet will now try to fix a faulted client.
+    '    'If ConnectedToComNet = False Then
+    '    '    SyncLock myLock
+    '    '        If IsNothing(client) Then
+    '    '            client = New ServiceReference1.MsgServiceClient(New System.ServiceModel.InstanceContext(New MsgServiceCallback))
+    '    '        End If
+
+    '    '        'Try to fix a faulted client state:
+    '    '        If client.State = ServiceModel.CommunicationState.Faulted Then
+    '    '            client = Nothing
+    '    '            client = New ServiceReference1.MsgServiceClient(New System.ServiceModel.InstanceContext(New MsgServiceCallback))
+    '    '        End If
+    '    '    End SyncLock
+
+    '    '    If client.State = ServiceModel.CommunicationState.Faulted Then
+    '    '        'Message.AddWarning("client state is faulted. Connection not made!" & vbCrLf)
+    '    '        bgwConnectToComNet.ReportProgress(1, "client state is faulted. Connection not made!" & vbCrLf)
+    '    '        bgwConnectToComNet.ReportProgress(1, "Run Standalone")
+    '    '    Else
+    '    '        Try
+    '    '            SyncLock myLock
+    '    '                client.Endpoint.Binding.SendTimeout = New System.TimeSpan(0, 0, 16) 'Temporarily set the send timeout to 16 seconds (8 seconds is too short for a slow computer!)
+    '    '                ConnectionName = ConnName 'This name will be modified if it is already used in an existing connection.
+    '    '                ConnectionName = client.Connect(ProNetName, ApplicationInfo.Name, ConnectionName, Project.Name, Project.Description, Project.Type, Project.Path, False, False)
+    '    '            End SyncLock
+
+    '    '            If ConnectionName <> "" Then
+    '    '                'Message.Add("Connected to the Andorville™ Network with Connection Name: [" & ProNetName & "]." & ConnectionName & vbCrLf)
+    '    '                bgwConnectToComNet.ReportProgress(1, "Connected to the Andorville™ Network with Connection Name: [" & ProNetName & "]." & ConnectionName & vbCrLf)
+    '    '                bgwConnectToComNet.ReportProgress(1, "Connected")
+    '    '                'The following code is now run in bgwConnectToComNet.ProgressChanged
+    '    '                'client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '    '                'btnOnline.Text = "Online"
+    '    '                'btnOnline.ForeColor = Color.ForestGreen
+    '    '                'ConnectedToComNet = True
+    '    '                'SendApplicationInfo()
+    '    '                'SendProjectInfo()
+    '    '                'client.GetAdvlNetworkAppInfoAsync() 'Update the Exe Path in case it has changed. This path may be needed in the future to start the ComNet (Message Service).
+
+    '    '                'bgwConnectToComNet.ReportProgress(1, "Cancel Run Standalone Dialog")
+
+    '    '                bgwComCheck.WorkerReportsProgress = True
+    '    '                bgwComCheck.WorkerSupportsCancellation = True
+    '    '                If bgwComCheck.IsBusy Then
+    '    '                    'The ComCheck thread is already running.
+    '    '                Else
+    '    '                    bgwComCheck.RunWorkerAsync() 'Start the ComCheck thread.
+    '    '                End If
+
+    '    '            Else
+    '    '                'Message.Add("Connection to the Andorville™ Network failed!" & vbCrLf)
+    '    '                bgwConnectToComNet.ReportProgress(1, "Connection to the Andorville™ Network failed!" & vbCrLf)
+    '    '                SyncLock myLock
+    '    '                    client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '    '                End SyncLock
+    '    '                bgwConnectToComNet.ReportProgress(1, "Run Standalone")
+    '    '            End If
+    '    '        Catch ex As System.TimeoutException
+    '    '            'Message.Add("Timeout error. Check if the Andorville™ Network (Message Service) is running." & vbCrLf)
+    '    '            bgwConnectToComNet.ReportProgress(1, "Timeout error. Check if the Andorville™ Network (Message Service) is running." & vbCrLf)
+    '    '            bgwConnectToComNet.ReportProgress(1, "Run Standalone")
+    '    '        Catch ex As Exception
+    '    '            'Message.Add("Error message: " & ex.Message & vbCrLf)
+    '    '            bgwConnectToComNet.ReportProgress(1, "Error message: " & ex.Message & vbCrLf)
+    '    '            SyncLock myLock
+    '    '                client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '    '            End SyncLock
+    '    '            bgwConnectToComNet.ReportProgress(1, "Run Standalone")
+    '    '        End Try
+    '    '    End If
+    '    'Else
+    '    '    'Message.AddWarning("Already connected to the Andorville™ Network (Message Service)." & vbCrLf)
+    '    '    bgwConnectToComNet.ReportProgress(1, "Already connected to the Andorville™ Network (Message Service)." & vbCrLf)
+    '    '    bgwConnectToComNet.ReportProgress(1, "Run Standalone" & vbCrLf)
+    '    'End If
+
+
+    'End Sub
+
+    'THIS WAS TEST CODE - NOT USED:
+    'Private Sub bgwConnectToComNet_ProgressChanged(sender As Object, e As ProgressChangedEventArgs) Handles bgwConnectToComNet.ProgressChanged
+    '    'The Connect to ComNet progress has changed.
+    '    'e.UserState.ToString is the progress message.
+
+    '    'NOTE: This technique seems to delay the code execution.
+
+    '    Select Case e.UserState.ToString
+    '        Case "Connected"
+    '            client.Endpoint.Binding.SendTimeout = New System.TimeSpan(1, 0, 0) 'Restore the send timeout to 1 hour
+    '            btnOnline.Text = "Online"
+    '            btnOnline.ForeColor = Color.ForestGreen
+    '            ConnectedToComNet = True
+    '            'Try doing this later
+    '            'SendApplicationInfo()
+    '            'SendProjectInfo()
+    '            'client.GetAdvlNetworkAppInfoAsync() 'Update the Exe Path in case it has changed. This path may be needed in the future to start the ComNet (Message Service).
+
+    '        Case "Run Standalone"
+    '            'Run the application in Standalong mode.
+
+    '        Case Else
+    '            'Message.Add(e.UserState.ToString)
+    '    End Select
+
+    'End Sub
+
 
     Private Sub DisconnectFromComNet()
         'Disconnect from the Communication Network (Message Service).
@@ -2896,6 +3503,7 @@ Public Class Main
                 Dim name As New XElement("Name", Me.ApplicationInfo.Name)
                 applicationInfo.Add(name)
 
+                '*** 10 - Update the application title *** - When using the ADVL Application Template, update the SendApplicationInfo() application title in the new application.
                 Dim text As New XElement("Text", "Application Template")
                 applicationInfo.Add(text)
 
@@ -2923,7 +3531,7 @@ Public Class Main
         'Send the project information to the Network application.
 
         If ConnectedToComNet = False Then
-            Message.AddWarning("The application is not connected to the Message Service." & vbCrLf)
+            Message.AddWarning("The 1 application is not connected to the Message Service." & vbCrLf)
         Else 'Connected to the Message Service (ComNet).
             If IsNothing(client) Then
                 Message.Add("No client connection available!" & vbCrLf)
@@ -2957,7 +3565,7 @@ Public Class Main
         'This version of SendProjectInfo uses the ProjectPath argument.
 
         If ConnectedToComNet = False Then
-            Message.AddWarning("The application is not connected to the Message Service." & vbCrLf)
+            Message.AddWarning("The 2 application is not connected to the Message Service." & vbCrLf)
         Else 'Connected to the Message Service (ComNet).
             If IsNothing(client) Then
                 Message.Add("No client connection available!" & vbCrLf)
@@ -3021,10 +3629,15 @@ Public Class Main
     Private Sub TabPage2_Enter(sender As Object, e As EventArgs) Handles TabPage2.Enter
         'Update the current duration:
 
-        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
-                                   Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
-                                   Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
-                                   Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+        'txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
+        '                           Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
+        '                           Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
+        '                           Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+
+        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                           Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                           Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                           Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
 
         Timer1.Interval = 5000 '5 seconds
         Timer1.Enabled = True
@@ -3035,10 +3648,15 @@ Public Class Main
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
         'Update the current duration:
 
-        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
-                           Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
-                           Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
-                           Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+        'txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
+        '                   Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
+        '                   Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
+        '                   Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+
+        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                   Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                   Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                   Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
     End Sub
 
     Private Sub TabPage2_Leave(sender As Object, e As EventArgs) Handles TabPage2.Leave
@@ -3055,7 +3673,7 @@ Public Class Main
         End If
 
         If ConnectedToComNet = False Then
-            Message.AddWarning("The application is not connected to the Message Service." & vbCrLf)
+            Message.AddWarning("The 3 application is not connected to the Message Service." & vbCrLf)
         Else 'Connected to the Message Service (ComNet).
             If IsNothing(client) Then
                 Message.Add("No client connection available!" & vbCrLf)
@@ -3087,33 +3705,220 @@ Public Class Main
     Private Sub btnOpenProject_Click(sender As Object, e As EventArgs) Handles btnOpenProject.Click
 
         If Project.Type = ADVL_Utilities_Library_1.Project.Types.Archive Then
-
+            If IsNothing(ProjectArchive) Then
+                ProjectArchive = New frmArchive
+                ProjectArchive.Show()
+                ProjectArchive.Title = "Project Archive"
+                ProjectArchive.Path = Project.Path
+            Else
+                ProjectArchive.Show()
+                ProjectArchive.BringToFront()
+            End If
         Else
             Process.Start(Project.Path)
         End If
 
     End Sub
 
+    Private Sub ProjectArchive_FormClosed(sender As Object, e As FormClosedEventArgs) Handles ProjectArchive.FormClosed
+        ProjectArchive = Nothing
+    End Sub
+
     Private Sub btnOpenSettings_Click(sender As Object, e As EventArgs) Handles btnOpenSettings.Click
         If Project.SettingsLocn.Type = ADVL_Utilities_Library_1.FileLocation.Types.Directory Then
             Process.Start(Project.SettingsLocn.Path)
+        ElseIf Project.SettingsLocn.Type = ADVL_Utilities_Library_1.FileLocation.Types.Archive Then
+            If IsNothing(SettingsArchive) Then
+                SettingsArchive = New frmArchive
+                SettingsArchive.Show()
+                SettingsArchive.Title = "Settings Archive"
+                SettingsArchive.Path = Project.SettingsLocn.Path
+            Else
+                SettingsArchive.Show()
+                SettingsArchive.BringToFront()
+            End If
         End If
+    End Sub
+
+    Private Sub SettingsArchive_FormClosed(sender As Object, e As FormClosedEventArgs) Handles SettingsArchive.FormClosed
+        SettingsArchive = Nothing
     End Sub
 
     Private Sub btnOpenData_Click(sender As Object, e As EventArgs) Handles btnOpenData.Click
         If Project.DataLocn.Type = ADVL_Utilities_Library_1.FileLocation.Types.Directory Then
             Process.Start(Project.DataLocn.Path)
+        ElseIf Project.DataLocn.Type = ADVL_Utilities_Library_1.FileLocation.Types.Archive Then
+            If IsNothing(DataArchive) Then
+                DataArchive = New frmArchive
+                DataArchive.Show()
+                DataArchive.Title = "Data Archive"
+                DataArchive.Path = Project.DataLocn.Path
+            Else
+                DataArchive.Show()
+                DataArchive.BringToFront()
+            End If
         End If
     End Sub
+
+    Private Sub DataArchive_FormClosed(sender As Object, e As FormClosedEventArgs) Handles DataArchive.FormClosed
+        DataArchive = Nothing
+    End Sub
+
 
     Private Sub btnOpenSystem_Click(sender As Object, e As EventArgs) Handles btnOpenSystem.Click
         If Project.SystemLocn.Type = ADVL_Utilities_Library_1.FileLocation.Types.Directory Then
             Process.Start(Project.SystemLocn.Path)
+        ElseIf Project.SystemLocn.Type = ADVL_Utilities_Library_1.FileLocation.Types.Archive Then
+            If IsNothing(SystemArchive) Then
+                SystemArchive = New frmArchive
+                SystemArchive.Show()
+                SystemArchive.Title = "System Archive"
+                SystemArchive.Path = Project.SystemLocn.Path
+            Else
+                SystemArchive.Show()
+                SystemArchive.BringToFront()
+            End If
         End If
+    End Sub
+
+    Private Sub SystemArchive_FormClosed(sender As Object, e As FormClosedEventArgs) Handles SystemArchive.FormClosed
+        SystemArchive = Nothing
     End Sub
 
     Private Sub btnOpenAppDir_Click(sender As Object, e As EventArgs) Handles btnOpenAppDir.Click
         Process.Start(ApplicationInfo.ApplicationDir)
+    End Sub
+
+    Private Sub btnCreateArchive_Click(sender As Object, e As EventArgs) Handles btnCreateArchive.Click
+        'Create a Project Archive file.
+        If Project.Type = ADVL_Utilities_Library_1.Project.Types.Archive Then
+            Message.Add("The Project is an Archive type. It is already in an archived format." & vbCrLf)
+
+        Else
+            'The project is contained in the directory Project.Path.
+            'This directory and contents will be saved in a zip file in the parent directory with the same name but with extension .AdvlArchive.
+
+            Dim ParentDir As String = System.IO.Directory.GetParent(Project.Path).FullName
+            Dim ProjectArchiveName As String = System.IO.Path.GetFileName(Project.Path) & ".AdvlArchive"
+
+            If My.Computer.FileSystem.FileExists(ParentDir & "\" & ProjectArchiveName) Then 'The Project Archive file already exists.
+                Message.Add("The Project Archive file already exists: " & ParentDir & "\" & ProjectArchiveName & vbCrLf)
+            Else 'The Project Archive file does not exist. OK to create the Archive.
+                System.IO.Compression.ZipFile.CreateFromDirectory(Project.Path, ParentDir & "\" & ProjectArchiveName)
+
+                'Remove all Lock files:
+                Dim Zip As System.IO.Compression.ZipArchive
+                Zip = System.IO.Compression.ZipFile.Open(ParentDir & "\" & ProjectArchiveName, IO.Compression.ZipArchiveMode.Update)
+                Dim DeleteList As New List(Of String) 'List of entry names to delete
+                Dim myEntry As System.IO.Compression.ZipArchiveEntry
+                For Each entry As System.IO.Compression.ZipArchiveEntry In Zip.Entries
+                    If entry.Name = "Project.Lock" Then
+                        DeleteList.Add(entry.FullName)
+                    End If
+                Next
+                For Each item In DeleteList
+                    myEntry = Zip.GetEntry(item)
+                    myEntry.Delete()
+                Next
+                Zip.Dispose()
+
+                Message.Add("Project Archive file created: " & ParentDir & "\" & ProjectArchiveName & vbCrLf)
+            End If
+        End If
+    End Sub
+
+    Private Sub btnOpenArchive_Click(sender As Object, e As EventArgs) Handles btnOpenArchive.Click
+        'Open a Project Archive file.
+
+        'Use the OpenFileDialog to look for an .AdvlArchive file.      
+        OpenFileDialog1.Title = "Select an Archived Project File"
+        OpenFileDialog1.InitialDirectory = System.IO.Directory.GetParent(Project.Path).FullName 'Start looking in the ParentDir.
+        OpenFileDialog1.Filter = "Archived Project|*.AdvlArchive"
+        If OpenFileDialog1.ShowDialog = DialogResult.OK Then
+            Dim FileName As String = OpenFileDialog1.FileName
+            OpenArchivedProject(FileName)
+        End If
+    End Sub
+
+    Private Sub OpenArchivedProject(ByVal FilePath As String)
+        'Open the archived project at the specified path.
+
+        Dim Zip As System.IO.Compression.ZipArchive
+        Try
+            Zip = System.IO.Compression.ZipFile.OpenRead(FilePath)
+
+            Dim Entry As System.IO.Compression.ZipArchiveEntry = Zip.GetEntry("Project_Info_ADVL_2.xml")
+            If IsNothing(Entry) Then
+                Message.AddWarning("The file is not an Archived Andorville Project." & vbCrLf)
+                'Check if it is an Archive project type with a .AdvlProject extension.
+                'NOTE: These are already zip files so no need to archive.
+
+            Else
+                Message.Add("The file is an Archived Andorville Project." & vbCrLf)
+                Dim ParentDir As String = System.IO.Directory.GetParent(FilePath).FullName
+                Dim ProjectName As String = System.IO.Path.GetFileNameWithoutExtension(FilePath)
+                Message.Add("The Project will be expanded in the directory: " & ParentDir & vbCrLf)
+                Message.Add("The Project name will be: " & ProjectName & vbCrLf)
+                Zip.Dispose()
+                If System.IO.Directory.Exists(ParentDir & "\" & ProjectName) Then
+                    Message.AddWarning("The Project already exists: " & ParentDir & "\" & ProjectName & vbCrLf)
+                Else
+                    System.IO.Compression.ZipFile.ExtractToDirectory(FilePath, ParentDir & "\" & ProjectName) 'Extract the project from the archive                   
+                    Project.AddProjectToList(ParentDir & "\" & ProjectName)
+                    'Open the new project                 
+                    CloseProject()  'Close the current project
+                    Project.SelectProject(ParentDir & "\" & ProjectName) 'Select the project at the specifed path.
+                    OpenProject() 'Open the selected project.
+                End If
+            End If
+        Catch ex As Exception
+            Message.AddWarning("Error opening Archived Andorville Project: " & ex.Message & vbCrLf)
+        End Try
+    End Sub
+
+    Private Sub TabPage2_DragEnter(sender As Object, e As DragEventArgs) Handles TabPage2.DragEnter
+        'DragEnter: An object has been dragged into TabPage2 - Project Information tab.
+        'This code is required to get the link to the item(s) being dragged into Project Information:
+        If e.Data.GetDataPresent(DataFormats.FileDrop) Then
+            e.Effect = DragDropEffects.Link
+        End If
+    End Sub
+
+    Private Sub TabPage2_DragDrop(sender As Object, e As DragEventArgs) Handles TabPage2.DragDrop
+        'A file has been dropped into the Project Information tab.
+
+        Dim Path As String()
+        Path = e.Data.GetData(DataFormats.FileDrop)
+        Dim I As Integer
+
+        If Path.Count > 0 Then
+            If Path.Count > 1 Then
+                Message.AddWarning("More than one file has been dropped into the Project Information tab. Only the first one will be opened." & vbCrLf)
+            End If
+
+            Try
+                Dim ArchivedProjectPath As String = Path(0)
+                If ArchivedProjectPath.EndsWith(".AdvlArchive") Then
+                    Message.Add("The archived project will be opened: " & vbCrLf & ArchivedProjectPath & vbCrLf)
+                    OpenArchivedProject(ArchivedProjectPath)
+                Else
+                    Message.Add("The dropped file is not an archived project: " & vbCrLf & ArchivedProjectPath & vbCrLf)
+                End If
+            Catch ex As Exception
+                Message.AddWarning("Error opening dropped archived project. " & ex.Message & vbCrLf)
+            End Try
+        End If
+    End Sub
+
+    Private Sub btnOpenParentDir_Click(sender As Object, e As EventArgs) Handles btnOpenParentDir.Click
+        'Open the Parent directory of the selected project.
+        Dim ParentDir As String = System.IO.Directory.GetParent(Project.Path).FullName
+        If System.IO.Directory.Exists(ParentDir) Then
+            Process.Start(ParentDir)
+        Else
+            Message.AddWarning("The parent directory was not found: " & ParentDir & vbCrLf)
+        End If
+
     End Sub
 
 
@@ -3242,15 +4047,25 @@ Public Class Main
                         Message.SettingsLocn = Project.SettingsLocn 'Set up the Message object
                         Message.Show() 'Added 18May19
 
-                        txtTotalDuration.Text = Project.Usage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
-                                      Project.Usage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
-                                      Project.Usage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
-                                      Project.Usage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c)
+                        'txtTotalDuration.Text = Project.Usage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
+                        '              Project.Usage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
+                        '              Project.Usage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
+                        '              Project.Usage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c)
 
-                        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
-                                       Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
-                                       Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
-                                       Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+                        'txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & ":" &
+                        '               Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & ":" &
+                        '               Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & ":" &
+                        '               Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c)
+
+                        txtTotalDuration.Text = Project.Usage.TotalDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                                        Project.Usage.TotalDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                                        Project.Usage.TotalDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                                        Project.Usage.TotalDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
+
+                        txtCurrentDuration.Text = Project.Usage.CurrentDuration.Days.ToString.PadLeft(5, "0"c) & "d:" &
+                                       Project.Usage.CurrentDuration.Hours.ToString.PadLeft(2, "0"c) & "h:" &
+                                       Project.Usage.CurrentDuration.Minutes.ToString.PadLeft(2, "0"c) & "m:" &
+                                       Project.Usage.CurrentDuration.Seconds.ToString.PadLeft(2, "0"c) & "s"
 
                     Else
                         ProjectSelected = False 'Project could not be opened.
@@ -3455,7 +4270,7 @@ Public Class Main
         OpenStartPage()
     End Sub
 
-    Private Sub Label7_Click(sender As Object, e As EventArgs) Handles Label7.Click
+    Private Sub Label7_Click(sender As Object, e As EventArgs)
 
     End Sub
 
@@ -3609,6 +4424,33 @@ Public Class Main
         SendProjectInfo(ProjectPath) 'Send the path of the new project to the Network application. The new project will be added to the list of projects.
     End Sub
 
+    Protected Overrides Sub Finalize()
+        MyBase.Finalize()
+    End Sub
+
+    Public Function WaitForConnection(ByVal ProNetName As String, ByVal ConnName As String, ByVal MaxMilliSecs As Integer) As Boolean
+        'Wait for the connection to be made for [ProNetName].ConnName
+        'Return True if the connection was made within MaxMilliSecs time.
+        'Return False if the connection was not made within MaxMilliSecs time.
+        Dim StartTime As Date = Now
+        Dim Duration As TimeSpan
+        Dim Timeout As Boolean = False
+        'Wait up to MaxMilliSecs for the connection ConnName to be established
+        While client.ConnectionExists(ProNetName, ConnName) = False 'Wait until the required connection is made.
+            System.Threading.Thread.Sleep(1000) 'Pause for 1000ms
+            Duration = Now - StartTime
+            If Duration.TotalMilliseconds > MaxMilliSecs Then
+                Timeout = True
+                Exit While 'Stop waiting after MaxMilliSecs.
+            End If
+        End While
+        If Timeout Then
+            Return False 'The Timeout period elapsed before the connection was made.
+        Else
+            Return True 'The connection was made within the Timeout period.
+        End If
+    End Function
+
 
 
 
@@ -3634,6 +4476,10 @@ Public Class Main
         Public Info As String 'The information in an instruction.
         Public Locn As String 'The location to send the information.
     End Class
+
+
+
+
 
 #End Region 'Form Classes ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

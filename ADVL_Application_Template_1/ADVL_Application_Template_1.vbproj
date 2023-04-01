@@ -23,8 +23,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>6</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationRevision>5</ApplicationRevision>
+    <ApplicationVersion>1.1.1.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -72,16 +72,21 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Template App V6.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Windows.Forms" />
@@ -104,6 +109,12 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="frmArchive.Designer.vb">
+      <DependentUpon>frmArchive.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmArchive.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="frmHtmlDisplay.Designer.vb">
       <DependentUpon>frmHtmlDisplay.vb</DependentUpon>
     </Compile>
@@ -158,6 +169,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="frmArchive.resx">
+      <DependentUpon>frmArchive.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmHtmlDisplay.resx">
       <DependentUpon>frmHtmlDisplay.vb</DependentUpon>
     </EmbeddedResource>
@@ -248,12 +262,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Template App V2.ico" />
-    <Content Include="Template App V3.ico" />
-    <Content Include="Template App V4.ico" />
-    <Content Include="Template App V5.ico" />
     <Content Include="Template App V6.ico" />
-    <Content Include="Template App.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
